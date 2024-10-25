@@ -1,12 +1,14 @@
 package com.recargapay.wallet.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.recargapay.wallet.exception.ResourceNotFoundException;
 import com.recargapay.wallet.models.entity.Transaction;
 import com.recargapay.wallet.models.entity.TransactionType;
 import com.recargapay.wallet.models.entity.User;
 import com.recargapay.wallet.models.entity.Wallet;
 import com.recargapay.wallet.models.dto.CreateWalletResponse;
-import com.recargapay.wallet.models.dto.WalletDto;
+import com.recargapay.wallet.models.dto.WalletResponse;
+import com.recargapay.wallet.models.mapper.WalletMapper;
 import com.recargapay.wallet.repository.TransactionRepository;
 import com.recargapay.wallet.repository.UserRepository;
 import com.recargapay.wallet.repository.WalletRepository;
@@ -15,7 +17,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,6 +37,9 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private WalletMapper walletMapper;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -48,7 +55,7 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet savedWallet = walletRepository.save(wallet);
 
-        return objectMapper.convertValue(savedWallet, CreateWalletResponse.class);
+        return walletMapper.toDto(savedWallet);
     }
 
     @Override
@@ -70,7 +77,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     @CacheEvict(value = "walletBalance", key = "#walletId")
-    public WalletDto deposit(Long walletId, BigDecimal amount) {
+    public WalletResponse deposit(Long walletId, BigDecimal amount) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
 
@@ -86,13 +93,13 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet savedWallet = walletRepository.save(wallet);
 
-        return objectMapper.convertValue(savedWallet, WalletDto.class);
+        return walletMapper.toWalletResponse(savedWallet);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "walletBalance", key = "#walletId")
-    public WalletDto withdraw(Long walletId, BigDecimal amount) {
+    public WalletResponse withdraw(Long walletId, BigDecimal amount) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
 
@@ -112,7 +119,7 @@ public class WalletServiceImpl implements WalletService {
 
         Wallet savedWallet = walletRepository.save(wallet);
 
-        return objectMapper.convertValue(savedWallet, WalletDto.class);
+        return walletMapper.toWalletResponse(savedWallet);
     }
 
     @Override
@@ -120,12 +127,12 @@ public class WalletServiceImpl implements WalletService {
     @CacheEvict(value = "walletBalance", allEntries = true)
     public void transfer(Long fromWalletId, Long toWalletId, BigDecimal amount) {
         Wallet fromWallet = walletRepository.findById(fromWalletId)
-                .orElseThrow(() -> new ResourceNotFoundException("Source wallet not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Source wallet not found"));
         Wallet toWallet = walletRepository.findById(toWalletId)
-                .orElseThrow(() -> new ResourceNotFoundException("Target wallet not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Target wallet not found"));
 
         if (fromWallet.getBalance().compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient balance in source wallet");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient balance in source wallet");
         }
 
         fromWallet.setBalance(fromWallet.getBalance().subtract(amount));

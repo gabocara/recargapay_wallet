@@ -4,7 +4,7 @@ import com.recargapay.wallet.models.dto.CreateWalletRequest;
 import com.recargapay.wallet.models.dto.CreateWalletResponse;
 import com.recargapay.wallet.models.dto.TransactionRequest;
 import com.recargapay.wallet.models.dto.TransferRequest;
-import com.recargapay.wallet.models.dto.WalletDto;
+import com.recargapay.wallet.models.dto.WalletResponse;
 import com.recargapay.wallet.services.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,14 +39,14 @@ public class WalletController {
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<WalletDto> deposit(@RequestBody TransactionRequest request) {
-        WalletDto walletDto = walletService.deposit(request.getWalletId(), request.getAmount());
+    public ResponseEntity<WalletResponse> deposit(@RequestBody TransactionRequest request) {
+        WalletResponse walletDto = walletService.deposit(request.getWalletId(), request.getAmount());
         return ResponseEntity.ok(walletDto);
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<WalletDto> withdraw(@RequestBody TransactionRequest request) {
-        WalletDto walletDto = walletService.withdraw(request.getWalletId(), request.getAmount());
+    public ResponseEntity<WalletResponse> withdraw(@RequestBody TransactionRequest request) {
+        WalletResponse walletDto = walletService.withdraw(request.getWalletId(), request.getAmount());
         return ResponseEntity.ok(walletDto);
     }
 

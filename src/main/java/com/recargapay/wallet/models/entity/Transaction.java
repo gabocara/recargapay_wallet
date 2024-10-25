@@ -1,5 +1,7 @@
 package com.recargapay.wallet.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,6 +18,7 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "wallet_id")
+    @JsonBackReference
     private Wallet wallet;
 
     @Enumerated(EnumType.STRING)
