@@ -165,6 +165,10 @@ You can use the following Postman collection to test the API endpoints. Make sur
   ]
 }
 
+## OpenAPI Documentation
+The OpenAPI documentation for this API is enabled and can be accessed at the following link:
+http://localhost:8080/swagger-ui/index.html
+
 ## Technical Comments
 Message Queues for Scalability: It is a good practice to use message queues to improve scalability; however, this was not implemented due to time constraints for the challenge.
 Embedded H2 Database: An embedded H2 database was used for testing purposes, but in a production environment, I would recommend using a relational database for better data integrity and performance.
